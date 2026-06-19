@@ -50,6 +50,13 @@ export default function Sidebar() {
     setTimeout(() => setRunning(false), 3000);
   }
 
+  async function stopAgent() {
+    try {
+      await fetch(`${API}/api/agent/stop`, { method: "POST" });
+      setTimeout(fetchStatus, 1000);
+    } catch {}
+  }
+
   const isActive = (href: string) =>
     href === "/" ? path === "/" : path.startsWith(href.split("?")[0]);
 
@@ -195,14 +202,42 @@ export default function Sidebar() {
           <p style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 12 }}>
             {agentStatus === "running" ? "Scraping leads now…" : "Runs daily at 8:00 AM"}
           </p>
-          <button
-            onClick={triggerAgent}
-            disabled={running || agentStatus === "running"}
-            className="btn-primary"
-            style={{ width: "100%", padding: "8px 0", fontSize: 12.5, opacity: (running || agentStatus === "running") ? 0.6 : 1 }}
-          >
-            {running ? "Starting…" : "Run Agent Now"}
-          </button>
+          {agentStatus === "running" ? (
+            <button
+              onClick={stopAgent}
+              className="btn-outline"
+              style={{
+                width: "100%",
+                padding: "8px 0",
+                fontSize: 12.5,
+                color: "#EF4444",
+                borderColor: "#FEE2E2",
+                background: "#FEF2F2",
+                fontWeight: 600,
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = "#fff";
+                e.currentTarget.style.background = "#EF4444";
+                e.currentTarget.style.borderColor = "#EF4444";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = "#EF4444";
+                e.currentTarget.style.background = "#FEF2F2";
+                e.currentTarget.style.borderColor = "#FEE2E2";
+              }}
+            >
+              Stop Agent
+            </button>
+          ) : (
+            <button
+              onClick={triggerAgent}
+              disabled={running || agentStatus === "running"}
+              className="btn-primary"
+              style={{ width: "100%", padding: "8px 0", fontSize: 12.5, opacity: (running || agentStatus === "running") ? 0.6 : 1 }}
+            >
+              {running ? "Starting…" : "Run Agent Now"}
+            </button>
+          )}
         </div>
       </div>
 

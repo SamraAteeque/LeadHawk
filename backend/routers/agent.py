@@ -14,6 +14,8 @@ from database.models import Lead
 
 router = APIRouter()
 
+active_subprocess = None
+
 
 class CopilotMessage(BaseModel):
     role: str
@@ -108,8 +110,45 @@ def get_runs(db: Session = Depends(get_db)):
     ]
 
 
+@router.post("/stop")
+def stop_run(db: Session = Depends(get_db)):
+    """Stop the currently running agent subprocess."""
+    global active_subprocess
+    if active_subprocess and active_subprocess.poll() is None:
+        active_subprocess.terminate()
+        try:
+            active_subprocess.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            active_subprocess.kill()
+        
+        # Mark the latest active run as failed/stopped in the database
+        latest = db.query(AgentRun).order_by(AgentRun.id.desc()).first()
+        if latest and latest.status == "running":
+            latest.status = "failed"
+            latest.error = "Agent stopped by user"
+            from datetime import datetime
+            latest.finished_at = datetime.utcnow()
+            db.commit()
+            
+        active_subprocess = None
+        return {"status": "stopped", "message": "Agent has been stopped"}
+    
+    # Check if DB has a stuck running state
+    latest = db.query(AgentRun).order_by(AgentRun.id.desc()).first()
+    if latest and latest.status == "running":
+        latest.status = "failed"
+        latest.error = "Agent stopped by user"
+        from datetime import datetime
+        latest.finished_at = datetime.utcnow()
+        db.commit()
+        return {"status": "stopped", "message": "Agent run status reset in database"}
+        
+    return {"status": "not_running", "message": "Agent is not currently running"}
+
+
 def _run_agent_subprocess():
     """Run the agent as a subprocess so it doesn't block the API."""
+    global active_subprocess
     backend_dir   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     scheduler_path = os.path.join(backend_dir, "agent", "scheduler.py")
     python_exe    = sys.executable
@@ -119,4 +158,6 @@ def _run_agent_subprocess():
     env["PYTHONIOENCODING"] = "utf-8"
     env["PYTHONUTF8"] = "1"
 
-    subprocess.run([python_exe, scheduler_path], cwd=backend_dir, env=env)
+    active_subprocess = subprocess.Popen([python_exe, scheduler_path], cwd=backend_dir, env=env)
+    active_subprocess.wait()
+    active_subprocess = None
