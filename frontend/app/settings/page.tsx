@@ -48,7 +48,7 @@ export default function SettingsPage() {
   const removeCat = (c: string) => set("target_categories", form.target_categories.filter((x: string) => x !== c));
 
   return (
-    <div style={{ padding: "28px 32px", maxWidth: 780 }}>
+    <div className="dashboard-container settings-container" style={{ padding: "28px 32px", maxWidth: 780 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
         <div>
           <h1 className="font-display" style={{ fontSize: 22, fontWeight: 700, color: "#0F1117" }}>Settings</h1>
@@ -65,7 +65,7 @@ export default function SettingsPage() {
 
         {/* Your Profile */}
         <Section icon={<User size={16} />} title="Your Profile" subtitle="Used in AI-generated cold emails">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div className="grid-2-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <Field label="Your Name">
               <input value={form.your_name || ""} onChange={e => set("your_name", e.target.value)} style={inputStyle} placeholder="Samra Ateeque" />
             </Field>
@@ -118,7 +118,7 @@ export default function SettingsPage() {
 
         {/* Agent config */}
         <Section icon={<Clock size={16} />} title="Agent Schedule" subtitle="When and how many leads to process daily">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
+          <div className="grid-3-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
             <Field label="Daily Run Time">
               <input type="time" value={form.run_time || "08:00"} onChange={e => set("run_time", e.target.value)} style={inputStyle} />
             </Field>
@@ -161,7 +161,7 @@ export default function SettingsPage() {
           <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 8, padding: "10px 14px", marginBottom: 14, fontSize: 13, color: "#92400E", lineHeight: 1.6 }}>
             💡 <strong>Gmail App Password setup:</strong> myaccount.google.com → Security → 2-Step Verification ON → Search "App Passwords" → Create → Copy 16-char password
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div className="grid-2-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <Field label="Gmail Address">
               <input value={form.gmail_user || ""} onChange={e => set("gmail_user", e.target.value)}
                 style={inputStyle} placeholder="your@gmail.com" type="email" />
@@ -178,7 +178,7 @@ export default function SettingsPage() {
           <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 8, padding: "10px 14px", marginBottom: 14, fontSize: 13, color: "#1E40AF", lineHeight: 1.6 }}>
             ⚠ Use a secondary LinkedIn account — scraping may flag your primary account.
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div className="grid-2-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <Field label="LinkedIn Email">
               <input value={form.linkedin_email || ""} onChange={e => set("linkedin_email", e.target.value)}
                 style={inputStyle} placeholder="linkedin@email.com" type="email" />

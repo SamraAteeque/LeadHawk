@@ -152,8 +152,25 @@ export default function DashboardPage() {
 
   const s = stats || MOCK_STATS;
 
+  // Trend data calculations
+  const trend = s.acquisition_trend || {
+    counts: [5, 12, 8, 15, 10, 18, 22],
+    labels: ["Fri", "Sat", "Sun", "Mon", "Tue", "Wed", "Today"],
+    trend_pct: 24
+  };
+  const trendCounts = trend.counts || [0,0,0,0,0,0,0];
+  const trendLabels = trend.labels || ["Fri", "Sat", "Sun", "Mon", "Tue", "Wed", "Today"];
+  const maxTrendVal = Math.max(...trendCounts, 5);
+  const getY = (val: number) => 130 - (val / maxTrendVal) * 110;
+  const trendPoints = trendCounts.map((count: number, idx: number) => ({
+    x: idx * (500 / 6),
+    y: getY(count)
+  }));
+  const trendLinePath = trendPoints.map((p: any, i: number) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+  const trendAreaPath = `${trendLinePath} L 500 150 L 0 150 Z`;
+
   return (
-    <div style={{ padding: "28px 32px", maxWidth: 1200 }}>
+    <div className="dashboard-container" style={{ padding: "28px 32px", maxWidth: 1200 }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <h1 className="font-display" style={{ fontSize: 24, fontWeight: 700, color: "#0F1117", marginBottom: 4 }}>
@@ -165,7 +182,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Metric cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 28 }}>
+      <div className="metrics-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 28 }}>
         {[
           { label: "Leads Today",  value: s.today_leads,  icon: Users,          sub: `${s.total_leads} total`,      color: "#F59E0B" },
           { label: "Emails Sent",  value: s.emails_sent,  icon: Mail,           sub: "this week",                   color: "#3B82F6" },
@@ -186,7 +203,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Source breakdown */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 28 }}>
+      <div className="sources-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 28 }}>
         {[
           { label: "Google Maps", icon: MapPin,    src: "google_maps", color: "#3B82F6", bg: "#DBEAFE" },
           { label: "Instagram",   icon: Instagram, src: "instagram",   color: "#EC4899", bg: "#FCE7F3" },
@@ -213,7 +230,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Analytics Insights */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 28 }}>
+      <div className="insights-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 28 }}>
         {/* Chart 1: Weekly Lead Acquisition (SVG Line graph) */}
         <div className="card" style={{ padding: "20px 24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -221,7 +238,15 @@ export default function DashboardPage() {
               <h3 className="font-display" style={{ fontSize: 15, fontWeight: 600, color: "#0F1117" }}>Lead Acquisition Trend</h3>
               <p style={{ fontSize: 12, color: "#9CA3AF" }}>Leads captured over the last 7 days</p>
             </div>
-            <span style={{ fontSize: 11.5, color: "#10B981", fontWeight: 600, background: "#10B98115", padding: "2px 8px", borderRadius: 4 }}>+24% vs last week</span>
+            {trend.trend_pct >= 0 ? (
+              <span style={{ fontSize: 11.5, color: "#10B981", fontWeight: 600, background: "#10B98115", padding: "2px 8px", borderRadius: 4 }}>
+                +{trend.trend_pct}% vs last week
+              </span>
+            ) : (
+              <span style={{ fontSize: 11.5, color: "#EF4444", fontWeight: 600, background: "#EF444415", padding: "2px 8px", borderRadius: 4 }}>
+                {trend.trend_pct}% vs last week
+              </span>
+            )}
           </div>
 
           <div style={{ position: "relative" }}>
@@ -238,27 +263,20 @@ export default function DashboardPage() {
               <line x1="0" y1="110" x2="500" y2="110" stroke="#F3F4F6" strokeWidth="1" strokeDasharray="4" />
 
               {/* Area path */}
-              <path d="M 0 120 C 40 100, 80 110, 120 70 C 160 30, 200 90, 240 60 C 280 30, 320 40, 360 20 C 400 0, 440 30, 500 10 L 500 150 L 0 150 Z" 
-                fill="url(#chart-grad)" />
+              <path d={trendAreaPath} fill="url(#chart-grad)" />
 
               {/* Line path */}
-              <path d="M 0 120 C 40 100, 80 110, 120 70 C 160 30, 200 90, 240 60 C 280 30, 320 40, 360 20 C 400 0, 440 30, 500 10" 
-                fill="none" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              <path d={trendLinePath} fill="none" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
 
               {/* Interactive nodes */}
-              <circle cx="120" cy="70" r="5" fill="#F59E0B" stroke="#FFF" strokeWidth="2" />
-              <circle cx="240" cy="60" r="5" fill="#F59E0B" stroke="#FFF" strokeWidth="2" />
-              <circle cx="360" cy="20" r="5" fill="#F59E0B" stroke="#FFF" strokeWidth="2" />
-              <circle cx="500" cy="10" r="5" fill="#F59E0B" stroke="#FFF" strokeWidth="2" />
+              {trendPoints.map((p: any, i: number) => (
+                <circle key={i} cx={p.x} cy={p.y} r="5" fill="#F59E0B" stroke="#FFF" strokeWidth="2" />
+              ))}
             </svg>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#9CA3AF", marginTop: 8 }}>
-              <span>Fri</span>
-              <span>Sat</span>
-              <span>Sun</span>
-              <span>Mon</span>
-              <span>Tue</span>
-              <span>Wed</span>
-              <span>Today</span>
+              {trendLabels.map((label: string, i: number) => (
+                <span key={i}>{label}</span>
+              ))}
             </div>
           </div>
         </div>
@@ -270,10 +288,10 @@ export default function DashboardPage() {
           
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[
-              { label: "Leads Found", count: s.total_leads || 248, pct: 100, color: "#3B82F6" },
-              { label: "Emails Generated", count: (s.emails_sent + 12) || 103, pct: Math.round(((s.emails_sent + 12) / (s.total_leads || 248)) * 100) || 41, color: "#8B5CF6" },
-              { label: "Outreach Sent", count: s.emails_sent || 91, pct: Math.round((s.emails_sent / (s.total_leads || 248)) * 100) || 36, color: "#EC4899" },
-              { label: "Replies Received", count: s.replied || 6, pct: s.emails_sent ? Math.round((s.replied / s.emails_sent) * 100) : 6.6, color: "#10B981", isConversion: true },
+              { label: "Leads Found", count: s.total_leads ?? 0, pct: 100, color: "#3B82F6" },
+              { label: "Emails Generated", count: s.emails_generated ?? 0, pct: s.total_leads ? Math.round((s.emails_generated / s.total_leads) * 100) : 0, color: "#8B5CF6" },
+              { label: "Outreach Sent", count: s.emails_sent ?? 0, pct: s.total_leads ? Math.round((s.emails_sent / s.total_leads) * 100) : 0, color: "#EC4899" },
+              { label: "Replies Received", count: s.replied ?? 0, pct: s.emails_sent ? Math.round((s.replied / s.emails_sent) * 100) : 0, color: "#10B981", isConversion: true },
             ].map(item => (
               <div key={item.label}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 4 }}>
@@ -281,7 +299,7 @@ export default function DashboardPage() {
                   <span style={{ color: "#6B7280", fontWeight: 600 }}>{item.count} <span style={{ color: "#9CA3AF", fontWeight: 400, fontSize: 11 }}>({item.pct}% {item.isConversion ? "conv." : "of total"})</span></span>
                 </div>
                 <div style={{ height: 8, background: "#F3F4F6", borderRadius: 4, overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${item.isConversion ? item.pct * 5 : item.pct}%`, background: item.color, borderRadius: 4, transition: "width 0.8s ease-out" }} />
+                  <div style={{ height: "100%", width: `${item.isConversion ? Math.min(100, item.pct * 5) : item.pct}%`, background: item.color, borderRadius: 4, transition: "width 0.8s ease-out" }} />
                 </div>
               </div>
             ))}
@@ -290,7 +308,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Leads table + email preview */}
-      <div style={{ display: "grid", gridTemplateColumns: selected ? "1fr 380px" : "1fr", gap: 20 }}>
+      <div className={`leads-section-grid ${selected ? "has-selected" : ""}`} style={{ display: "grid", gridTemplateColumns: selected ? "1fr 380px" : "1fr", gap: 20 }}>
         {/* Table */}
         <div className="card" style={{ overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid #E8EAF0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -310,63 +328,65 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Table head */}
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1.2fr 0.9fr 1fr 0.9fr", padding: "10px 20px", background: "#F7F8FA", borderBottom: "1px solid #E8EAF0" }}>
-            {["Business","Source","Score","Status","Action"].map(h => (
-              <span key={h} style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.4 }}>{h}</span>
-            ))}
-          </div>
-
-          {/* Rows */}
-          {leads.length === 0 ? (
-            <div style={{ padding: "40px 20px", textAlign: "center", color: "#9CA3AF", fontSize: 13.5 }}>
-              No leads found today matching this filter.
+          <div className="responsive-table-body">
+            {/* Table head */}
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1.2fr 0.9fr 1fr 0.9fr", padding: "10px 20px", background: "#F7F8FA", borderBottom: "1px solid #E8EAF0" }}>
+              {["Business","Source","Score","Status","Action"].map(h => (
+                <span key={h} style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.4 }}>{h}</span>
+              ))}
             </div>
-          ) : (
-            leads.map((lead: any) => (
-              <div key={lead.id} onClick={() => setSelected(lead)}
-                style={{
-                  display: "grid", gridTemplateColumns: "2fr 1.2fr 0.9fr 1fr 0.9fr",
-                  padding: "13px 20px", borderBottom: "1px solid #F0F2F5",
-                  cursor: "pointer", alignItems: "center",
-                  background: selected?.id === lead.id ? "#FFFBEB" : "#fff",
-                  transition: "background 0.12s",
-                }}
-                onMouseEnter={e => { if (selected?.id !== lead.id) (e.currentTarget as HTMLElement).style.background = "#FAFAFA"; }}
-                onMouseLeave={e => { if (selected?.id !== lead.id) (e.currentTarget as HTMLElement).style.background = "#fff"; }}
-              >
-                <div>
-                  <div style={{ fontSize: 13.5, fontWeight: 500, color: "#0F1117" }}>{lead.biz_name}</div>
-                  <div style={{ fontSize: 12, color: "#9CA3AF" }}>{lead.category} · {lead.city}</div>
-                </div>
-                <div>
-                  <span className={`source-${srcClass(lead.source)}`} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 5, fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                    {sourceLabel(lead.source)}
-                  </span>
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: scoreColor(lead.score) }}>{lead.score}</div>
-                  <div style={{ height: 3, width: 48, background: "#F0F2F5", borderRadius: 2, marginTop: 4 }}>
-                    <div style={{ height: 3, width: `${lead.score}%`, background: scoreColor(lead.score), borderRadius: 2 }} />
+
+            {/* Rows */}
+            {leads.length === 0 ? (
+              <div style={{ padding: "40px 20px", textAlign: "center", color: "#9CA3AF", fontSize: 13.5 }}>
+                No leads found today matching this filter.
+              </div>
+            ) : (
+              leads.map((lead: any) => (
+                <div key={lead.id} onClick={() => setSelected(lead)}
+                  style={{
+                    display: "grid", gridTemplateColumns: "2fr 1.2fr 0.9fr 1fr 0.9fr",
+                    padding: "13px 20px", borderBottom: "1px solid #F0F2F5",
+                    cursor: "pointer", alignItems: "center",
+                    background: selected?.id === lead.id ? "#FFFBEB" : "#fff",
+                    transition: "background 0.12s",
+                  }}
+                  onMouseEnter={e => { if (selected?.id !== lead.id) (e.currentTarget as HTMLElement).style.background = "#FAFAFA"; }}
+                  onMouseLeave={e => { if (selected?.id !== lead.id) (e.currentTarget as HTMLElement).style.background = "#fff"; }}
+                >
+                  <div>
+                    <div style={{ fontSize: 13.5, fontWeight: 500, color: "#0F1117" }}>{lead.biz_name}</div>
+                    <div style={{ fontSize: 12, color: "#9CA3AF" }}>{lead.category} · {lead.city}</div>
+                  </div>
+                  <div>
+                    <span className={`source-${srcClass(lead.source)}`} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 5, fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      {sourceLabel(lead.source)}
+                    </span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: scoreColor(lead.score) }}>{lead.score}</div>
+                    <div style={{ height: 3, width: 48, background: "#F0F2F5", borderRadius: 2, marginTop: 4 }}>
+                      <div style={{ height: 3, width: `${lead.score}%`, background: scoreColor(lead.score), borderRadius: 2 }} />
+                    </div>
+                  </div>
+                  <div>
+                    <span className={`status-${lead.status?.replace("_sent","").replace("email","sent")}`} style={{ fontSize: 11, padding: "3px 9px", borderRadius: 20, fontWeight: 500 }}>
+                      {statusLabel(lead.status)}
+                    </span>
+                  </div>
+                  <div>
+                    <button
+                      onClick={e => { e.stopPropagation(); generateEmail(lead); }}
+                      className="btn-primary"
+                      style={{ padding: "5px 10px", fontSize: 11.5 }}
+                    >
+                      {lead.status === "new" ? "✉ Generate" : "View"}
+                    </button>
                   </div>
                 </div>
-                <div>
-                  <span className={`status-${lead.status?.replace("_sent","").replace("email","sent")}`} style={{ fontSize: 11, padding: "3px 9px", borderRadius: 20, fontWeight: 500 }}>
-                    {statusLabel(lead.status)}
-                  </span>
-                </div>
-                <div>
-                  <button
-                    onClick={e => { e.stopPropagation(); generateEmail(lead); }}
-                    className="btn-primary"
-                    style={{ padding: "5px 10px", fontSize: 11.5 }}
-                  >
-                    {lead.status === "new" ? "✉ Generate" : "View"}
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
 
           <div style={{ padding: "12px 20px", borderTop: "1px solid #F0F2F5" }}>
             <Link href="/leads" style={{ fontSize: 13, color: "#F59E0B", fontWeight: 500, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
@@ -377,7 +397,7 @@ export default function DashboardPage() {
 
         {/* Email preview drawer */}
         {selected && (
-          <div className="card" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 0 }}>
+          <div className="email-drawer card" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 0 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <h3 className="font-display" style={{ fontSize: 14, fontWeight: 600 }}>Lead Outreach</h3>
               <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", fontSize: 18 }}>×</button>
@@ -558,7 +578,20 @@ function statusLabel(s: string) {
   return { new: "New", email_sent: "Sent", replied: "Replied!", skipped: "Skipped" }[s] || s;
 }
 
-const MOCK_STATS = { today_leads: 37, total_leads: 248, emails_sent: 91, replied: 6, reply_rate: 6.6, by_source: { google_maps: 18, instagram: 12, linkedin: 7 } };
+const MOCK_STATS = {
+  today_leads: 37,
+  total_leads: 248,
+  emails_sent: 91,
+  replied: 6,
+  reply_rate: 6.6,
+  by_source: { google_maps: 18, instagram: 12, linkedin: 7 },
+  emails_generated: 103,
+  acquisition_trend: {
+    counts: [5, 12, 8, 15, 10, 18, 22],
+    labels: ["Fri", "Sat", "Sun", "Mon", "Tue", "Wed", "Today"],
+    trend_pct: 24
+  }
+};
 const MOCK_LEADS = [
   { id: 1, biz_name: "Kapoor Sweets & Bakery", category: "Food & Beverage", city: "Lucknow",  source: "google_maps", score: 92, status: "new",        email: "kapoor@example.com" },
   { id: 2, biz_name: "Sharma Dental Clinic",   category: "Healthcare",      city: "Kanpur",   source: "linkedin",   score: 87, status: "email_sent",  email: "sharma@example.com" },

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, cast, Date
 from database.connection import get_db
-from database.models import Lead, Settings
+from database.models import Lead, Settings, Email
 from emails.generator import generate_whatsapp
 from datetime import date
 from typing import Optional
@@ -46,10 +46,17 @@ def get_stats(db: Session = Depends(get_db)):
     today_leads  = db.query(func.count(Lead.id)).filter(
         cast(Lead.created_at, Date) == today).scalar()
     total_leads  = db.query(func.count(Lead.id)).scalar()
-    emails_sent  = db.query(func.count(Lead.id)).filter(
-        Lead.status.in_(["email_sent", "replied"])).scalar()
+    
+    # Count generated emails
+    emails_generated = db.query(func.count(Email.id)).scalar()
+    
+    # Count sent emails
+    emails_sent  = db.query(func.count(Email.id)).filter(
+        Email.status.in_(["sent", "opened", "replied"])).scalar()
+        
     replied      = db.query(func.count(Lead.id)).filter(
         Lead.status == "replied").scalar()
+        
     reply_rate   = round((replied / emails_sent * 100), 1) if emails_sent else 0
 
     by_source = db.query(Lead.source, func.count(Lead.id)).group_by(Lead.source).all()
@@ -61,6 +68,7 @@ def get_stats(db: Session = Depends(get_db)):
         "replied":      replied,
         "reply_rate":   reply_rate,
         "by_source":    {src: cnt for src, cnt in by_source},
+        "emails_generated": emails_generated,
     }
 
 

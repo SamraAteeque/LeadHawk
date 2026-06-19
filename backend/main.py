@@ -15,6 +15,22 @@ with engine.connect() as conn:
     except Exception as e:
         print(f"Migration error (custom_prompt): {e}")
 
+# Clean up any stuck runs from previous sessions on server startup
+from database.connection import SessionLocal
+from database.models import AgentRun
+from sqlalchemy.sql import func
+
+try:
+    with SessionLocal() as db:
+        db.query(AgentRun).filter(AgentRun.status == "running").update({
+            "status": "failed",
+            "error": "Stuck run cleaned up on server startup",
+            "finished_at": func.now()
+        })
+        db.commit()
+except Exception as e:
+    print(f"Error cleaning up stuck agent runs: {e}")
+
 
 app = FastAPI(title="LeadHawk AI", version="1.0.0")
 

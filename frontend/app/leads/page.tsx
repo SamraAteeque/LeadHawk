@@ -42,6 +42,11 @@ function LeadsContent() {
     }
   }, [selected]);
 
+  useEffect(() => {
+    setSource(srcParam);
+    setPage(0);
+  }, [srcParam]);
+
   async function fetchAudit(leadId: number) {
     setAuditLoading(true);
     setAuditData(null);
@@ -176,7 +181,7 @@ function LeadsContent() {
   const pages = Math.ceil(total / LIMIT);
 
   return (
-    <div style={{ padding: "28px 32px" }}>
+    <div className="dashboard-container" style={{ padding: "28px 32px" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <div>
@@ -231,73 +236,75 @@ function LeadsContent() {
         />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: selected ? "1fr 380px" : "1fr", gap: 20 }}>
+      <div className={`leads-section-grid ${selected ? "has-selected" : ""}`} style={{ display: "grid", gridTemplateColumns: selected ? "1fr 380px" : "1fr", gap: 20 }}>
         {/* Table */}
         <div className="card" style={{ overflow: "hidden" }}>
-          {/* Head */}
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1.1fr 1fr 1fr 0.8fr 1.2fr", padding: "10px 20px", background: "#F7F8FA", borderBottom: "1px solid #E8EAF0" }}>
-            {["Business","Source","City","Score","Status","Actions"].map(h => (
-              <span key={h} style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.4 }}>{h}</span>
-            ))}
-          </div>
-
-          {loading ? (
-            <div style={{ padding: "40px 0", textAlign: "center", color: "#9CA3AF", fontSize: 14 }}>Loading leads…</div>
-          ) : filtered.length === 0 ? (
-            <div style={{ padding: "60px 0", textAlign: "center" }}>
-              <div style={{ fontSize: 32, marginBottom: 10 }}>🦅</div>
-              <div style={{ fontSize: 14, color: "#9CA3AF" }}>No leads found. Run the agent to get started.</div>
+          <div className="responsive-table-body">
+            {/* Head */}
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1.1fr 1fr 1fr 0.8fr 1.2fr", padding: "10px 20px", background: "#F7F8FA", borderBottom: "1px solid #E8EAF0" }}>
+              {["Business","Source","City","Score","Status","Actions"].map(h => (
+                <span key={h} style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.4 }}>{h}</span>
+              ))}
             </div>
-          ) : filtered.map((lead: any) => (
-            <div key={lead.id}
-              onClick={() => setSelected(selected?.id === lead.id ? null : lead)}
-              style={{
-                display: "grid", gridTemplateColumns: "2fr 1.1fr 1fr 1fr 0.8fr 1.2fr",
-                padding: "12px 20px", borderBottom: "1px solid #F0F2F5",
-                cursor: "pointer", alignItems: "center",
-                background: selected?.id === lead.id ? "#FFFBEB" : "#fff",
-                transition: "background 0.12s",
-              }}
-              onMouseEnter={e => { if (selected?.id !== lead.id) (e.currentTarget as HTMLElement).style.background = "#FAFAFA"; }}
-              onMouseLeave={e => { if (selected?.id !== lead.id) (e.currentTarget as HTMLElement).style.background = "#fff"; }}
-            >
-              <div>
-                <div style={{ fontSize: 13.5, fontWeight: 500, color: "#0F1117" }}>{lead.biz_name}</div>
-                <div style={{ fontSize: 11.5, color: "#9CA3AF" }}>{lead.category}</div>
+
+            {loading ? (
+              <div style={{ padding: "40px 0", textAlign: "center", color: "#9CA3AF", fontSize: 14 }}>Loading leads…</div>
+            ) : filtered.length === 0 ? (
+              <div style={{ padding: "60px 0", textAlign: "center" }}>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>🦅</div>
+                <div style={{ fontSize: 14, color: "#9CA3AF" }}>No leads found. Run the agent to get started.</div>
               </div>
-              <div>
-                <span style={{
-                  fontSize: 11, padding: "3px 8px", borderRadius: 5, fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 4,
-                  ...(lead.source === "google_maps" ? { background: "#DBEAFE", color: "#1D4ED8" } :
-                      lead.source === "instagram"   ? { background: "#FCE7F3", color: "#BE185D" } :
-                                                      { background: "#DBEAFE", color: "#1E40AF" })
-                }}>
-                  {lead.source === "google_maps" && <MapPin size={10} />}
-                  {lead.source === "instagram"   && <Instagram size={10} />}
-                  {lead.source === "linkedin"    && <Linkedin size={10} />}
-                  {sourceLabel(lead.source)}
-                </span>
-              </div>
-              <div style={{ fontSize: 13, color: "#374151" }}>{lead.city}</div>
-              <div>
-                <span style={{ fontSize: 13, fontWeight: 600, color: scoreColor(lead.score) }}>{lead.score}</span>
-                <div style={{ height: 3, width: 44, background: "#F0F2F5", borderRadius: 2, marginTop: 4 }}>
-                  <div style={{ height: 3, width: `${lead.score}%`, background: scoreColor(lead.score), borderRadius: 2 }} />
+            ) : filtered.map((lead: any) => (
+              <div key={lead.id}
+                onClick={() => setSelected(selected?.id === lead.id ? null : lead)}
+                style={{
+                  display: "grid", gridTemplateColumns: "2fr 1.1fr 1fr 1fr 0.8fr 1.2fr",
+                  padding: "12px 20px", borderBottom: "1px solid #F0F2F5",
+                  cursor: "pointer", alignItems: "center",
+                  background: selected?.id === lead.id ? "#FFFBEB" : "#fff",
+                  transition: "background 0.12s",
+                }}
+                onMouseEnter={e => { if (selected?.id !== lead.id) (e.currentTarget as HTMLElement).style.background = "#FAFAFA"; }}
+                onMouseLeave={e => { if (selected?.id !== lead.id) (e.currentTarget as HTMLElement).style.background = "#fff"; }}
+              >
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 500, color: "#0F1117" }}>{lead.biz_name}</div>
+                  <div style={{ fontSize: 11.5, color: "#9CA3AF" }}>{lead.category}</div>
+                </div>
+                <div>
+                  <span style={{
+                    fontSize: 11, padding: "3px 8px", borderRadius: 5, fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 4,
+                    ...(lead.source === "google_maps" ? { background: "#DBEAFE", color: "#1D4ED8" } :
+                        lead.source === "instagram"   ? { background: "#FCE7F3", color: "#BE185D" } :
+                                                        { background: "#DBEAFE", color: "#1E40AF" })
+                  }}>
+                    {lead.source === "google_maps" && <MapPin size={10} />}
+                    {lead.source === "instagram"   && <Instagram size={10} />}
+                    {lead.source === "linkedin"    && <Linkedin size={10} />}
+                    {sourceLabel(lead.source)}
+                  </span>
+                </div>
+                <div style={{ fontSize: 13, color: "#374151" }}>{lead.city}</div>
+                <div>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: scoreColor(lead.score) }}>{lead.score}</span>
+                  <div style={{ height: 3, width: 44, background: "#F0F2F5", borderRadius: 2, marginTop: 4 }}>
+                    <div style={{ height: 3, width: `${lead.score}%`, background: scoreColor(lead.score), borderRadius: 2 }} />
+                  </div>
+                </div>
+                <div>
+                  <span className={`status-${statusClass(lead.status)}`} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 20, fontWeight: 500 }}>
+                    {statusLabel(lead.status)}
+                  </span>
+                </div>
+                <div style={{ display: "flex", gap: 6 }} onClick={e => e.stopPropagation()}>
+                  <button className="btn-primary" onClick={() => generateEmail(lead)}
+                    style={{ padding: "5px 10px", fontSize: 11.5 }}>✉ Email</button>
+                  <button className="btn-outline" onClick={() => skipLead(lead.id)}
+                    style={{ padding: "5px 8px", fontSize: 11.5 }}>Skip</button>
                 </div>
               </div>
-              <div>
-                <span className={`status-${statusClass(lead.status)}`} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 20, fontWeight: 500 }}>
-                  {statusLabel(lead.status)}
-                </span>
-              </div>
-              <div style={{ display: "flex", gap: 6 }} onClick={e => e.stopPropagation()}>
-                <button className="btn-primary" onClick={() => generateEmail(lead)}
-                  style={{ padding: "5px 10px", fontSize: 11.5 }}>✉ Email</button>
-                <button className="btn-outline" onClick={() => skipLead(lead.id)}
-                  style={{ padding: "5px 8px", fontSize: 11.5 }}>Skip</button>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
           {/* Pagination */}
           {pages > 1 && (
@@ -313,7 +320,7 @@ function LeadsContent() {
 
         {/* Email sidebar */}
         {selected && (
-          <div className="card" style={{ padding: 20, alignSelf: "start", position: "sticky", top: 20 }}>
+          <div className="email-drawer card" style={{ padding: 20, alignSelf: "start", position: "sticky", top: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 className="font-display" style={{ fontSize: 14, fontWeight: 600 }}>Lead Outreach</h3>
               <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", fontSize: 18, lineHeight: 1 }}>×</button>

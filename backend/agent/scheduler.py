@@ -18,6 +18,25 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+# Globally override print to safely handle encoding errors on Windows
+import builtins
+_orig_print = builtins.print
+
+def safe_print(*args, **kwargs):
+    try:
+        _orig_print(*args, **kwargs)
+    except UnicodeEncodeError:
+        encoding = sys.stdout.encoding or "utf-8"
+        safe_args = []
+        for arg in args:
+            if isinstance(arg, str):
+                safe_args.append(arg.encode(encoding, errors="replace").decode(encoding))
+            else:
+                safe_args.append(arg)
+        _orig_print(*safe_args, **kwargs)
+
+builtins.print = safe_print
+
 from datetime import datetime, date
 from database.connection import SessionLocal
 from database.models import Lead, Email, Settings, AgentRun

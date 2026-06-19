@@ -32,7 +32,7 @@ export default function EmailsPage() {
   };
 
   return (
-    <div style={{ padding: "28px 32px" }}>
+    <div className="dashboard-container" style={{ padding: "28px 32px" }}>
       <div style={{ marginBottom: 24 }}>
         <h1 className="font-display" style={{ fontSize: 22, fontWeight: 700, color: "#0F1117" }}>Emails</h1>
         <p style={{ fontSize: 13, color: "#9CA3AF", marginTop: 2 }}>{emails.length} AI-generated emails</p>
@@ -53,51 +53,53 @@ export default function EmailsPage() {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: selected ? "1fr 420px" : "1fr", gap: 20 }}>
+      <div className={`leads-section-grid emails-grid ${selected ? "has-selected" : ""}`} style={{ display: "grid", gridTemplateColumns: selected ? "1fr 420px" : "1fr", gap: 20 }}>
         {/* Email list */}
         <div className="card" style={{ overflow: "hidden" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "2.5fr 1.2fr 1fr 1fr", padding: "10px 20px", background: "#F7F8FA", borderBottom: "1px solid #E8EAF0" }}>
-            {["Subject","Lead","Status","Sent"].map(h => (
-              <span key={h} style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.4 }}>{h}</span>
+          <div className="responsive-table-body">
+            <div style={{ display: "grid", gridTemplateColumns: "2.5fr 1.2fr 1fr 1fr", padding: "10px 20px", background: "#F7F8FA", borderBottom: "1px solid #E8EAF0" }}>
+              {["Subject","Lead","Status","Sent"].map(h => (
+                <span key={h} style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.4 }}>{h}</span>
+              ))}
+            </div>
+
+            {loading ? (
+              <div style={{ padding: "40px 0", textAlign: "center", color: "#9CA3AF" }}>Loading…</div>
+            ) : filtered.length === 0 ? (
+              <div style={{ padding: "60px 0", textAlign: "center" }}>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>✉</div>
+                <div style={{ fontSize: 14, color: "#9CA3AF" }}>No emails yet. Generate emails from the leads page.</div>
+              </div>
+            ) : filtered.map((email: any) => (
+              <div key={email.id} onClick={() => setSelected(selected?.id === email.id ? null : email)}
+                style={{
+                  display: "grid", gridTemplateColumns: "2.5fr 1.2fr 1fr 1fr",
+                  padding: "13px 20px", borderBottom: "1px solid #F0F2F5",
+                  cursor: "pointer", alignItems: "center",
+                  background: selected?.id === email.id ? "#FFFBEB" : "#fff",
+                  transition: "background 0.12s",
+                }}
+                onMouseEnter={e => { if (selected?.id !== email.id) (e.currentTarget as HTMLElement).style.background = "#FAFAFA"; }}
+                onMouseLeave={e => { if (selected?.id !== email.id) (e.currentTarget as HTMLElement).style.background = "#fff"; }}
+              >
+                <div style={{ fontSize: 13.5, fontWeight: 500, color: "#0F1117", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 12 }}>
+                  {email.subject}
+                </div>
+                <div style={{ fontSize: 13, color: "#374151" }}>Lead #{email.lead_id}</div>
+                <div>
+                  <StatusBadge status={email.status} />
+                </div>
+                <div style={{ fontSize: 12, color: "#9CA3AF" }}>
+                  {email.sent_at ? new Date(email.sent_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "Not sent"}
+                </div>
+              </div>
             ))}
           </div>
-
-          {loading ? (
-            <div style={{ padding: "40px 0", textAlign: "center", color: "#9CA3AF" }}>Loading…</div>
-          ) : filtered.length === 0 ? (
-            <div style={{ padding: "60px 0", textAlign: "center" }}>
-              <div style={{ fontSize: 32, marginBottom: 10 }}>✉</div>
-              <div style={{ fontSize: 14, color: "#9CA3AF" }}>No emails yet. Generate emails from the leads page.</div>
-            </div>
-          ) : filtered.map((email: any) => (
-            <div key={email.id} onClick={() => setSelected(selected?.id === email.id ? null : email)}
-              style={{
-                display: "grid", gridTemplateColumns: "2.5fr 1.2fr 1fr 1fr",
-                padding: "13px 20px", borderBottom: "1px solid #F0F2F5",
-                cursor: "pointer", alignItems: "center",
-                background: selected?.id === email.id ? "#FFFBEB" : "#fff",
-                transition: "background 0.12s",
-              }}
-              onMouseEnter={e => { if (selected?.id !== email.id) (e.currentTarget as HTMLElement).style.background = "#FAFAFA"; }}
-              onMouseLeave={e => { if (selected?.id !== email.id) (e.currentTarget as HTMLElement).style.background = "#fff"; }}
-            >
-              <div style={{ fontSize: 13.5, fontWeight: 500, color: "#0F1117", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 12 }}>
-                {email.subject}
-              </div>
-              <div style={{ fontSize: 13, color: "#374151" }}>Lead #{email.lead_id}</div>
-              <div>
-                <StatusBadge status={email.status} />
-              </div>
-              <div style={{ fontSize: 12, color: "#9CA3AF" }}>
-                {email.sent_at ? new Date(email.sent_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "Not sent"}
-              </div>
-            </div>
-          ))}
         </div>
 
         {/* Email detail */}
         {selected && (
-          <div className="card" style={{ padding: 24, alignSelf: "start", position: "sticky", top: 20 }}>
+          <div className="email-drawer card" style={{ padding: 24, alignSelf: "start", position: "sticky", top: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
               <div>
                 <h3 className="font-display" style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Email #{selected.id}</h3>

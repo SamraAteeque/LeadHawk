@@ -79,7 +79,7 @@ def trigger_run(background_tasks: BackgroundTasks, db: Session = Depends(get_db)
 @router.get("/status")
 def get_status(db: Session = Depends(get_db)):
     """Get the status of the latest agent run."""
-    latest = db.query(AgentRun).order_by(AgentRun.started_at.desc()).first()
+    latest = db.query(AgentRun).order_by(AgentRun.id.desc()).first()
     if not latest:
         return {"status": "never_run", "leads_found": 0, "emails_sent": 0}
     return {
@@ -94,7 +94,7 @@ def get_status(db: Session = Depends(get_db)):
 
 @router.get("/runs")
 def get_runs(db: Session = Depends(get_db)):
-    runs = db.query(AgentRun).order_by(AgentRun.started_at.desc()).limit(20).all()
+    runs = db.query(AgentRun).order_by(AgentRun.id.desc()).limit(20).all()
     return [
         {
             "id":          r.id,
@@ -114,4 +114,9 @@ def _run_agent_subprocess():
     scheduler_path = os.path.join(backend_dir, "agent", "scheduler.py")
     python_exe    = sys.executable
 
-    subprocess.run([python_exe, scheduler_path], cwd=backend_dir)
+    # Copy environment and set UTF-8 encoding variables to prevent Windows stdout crashes
+    env = os.environ.copy()
+    env["PYTHONIOENCODING"] = "utf-8"
+    env["PYTHONUTF8"] = "1"
+
+    subprocess.run([python_exe, scheduler_path], cwd=backend_dir, env=env)

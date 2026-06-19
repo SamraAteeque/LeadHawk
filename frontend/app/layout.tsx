@@ -10,9 +10,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="description" content="Autonomous lead generation for freelance developers" />
       </head>
       <body>
-        <div style={{ display: "flex", minHeight: "100vh" }}>
+        <div className="layout-wrapper" style={{ display: "flex", minHeight: "100vh" }}>
           <Sidebar />
-          <main style={{ flex: 1, minHeight: "100vh", overflowY: "auto" }}>
+          <main className="layout-main" style={{ flex: 1, minHeight: "100vh", overflowY: "auto" }}>
             {children}
           </main>
         </div>
