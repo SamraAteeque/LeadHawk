@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg:          #FFFFFF;
+  --bg-secondary:#F7F8FA;
+  --bg-tertiary: #F0F2F5;
+  --border:      #E8EAF0;
+  --border-dark: #D1D5DF;
+  --text-primary:#0F1117;
+  --text-muted:  #6B7280;
+  --text-light:  #9CA3AF;
+  --amber:       #F59E0B;
+  --amber-light: #FEF3C7;
+  --amber-mid:   #FDE68A;
+  --green:       #10B981;
+  --green-light: #D1FAE5;
+  --red:         #EF4444;
+  --red-light:   #FEE2E2;
+  --blue:        #3B82F6;
+  --blue-light:  #DBEAFE;
+  --purple:      #8B5CF6;
+  --purple-light:#EDE9FE;
+  --pink:        #EC4899;
+  --pink-light:  #FCE7F3;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.font-display { font-family: 'Space Grotesk', sans-serif; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-light); }
+
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.btn-primary {
+  background: var(--amber);
+  color: #fff;
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-primary:hover { background: #D97706; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-dark);
+  color: var(--text-muted);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-outline:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-light); }
+
+.status-new      { background: var(--blue-light);   color: #1D4ED8; }
+.status-sent     { background: var(--green-light);  color: #065F46; }
+.status-replied  { background: var(--amber-light);  color: #92400E; }
+.status-skipped  { background: var(--bg-tertiary);  color: var(--text-light); }
+
+.source-maps  { background: var(--blue-light);   color: #1D4ED8; }
+.source-insta { background: var(--pink-light);   color: #BE185D; }
+.source-li    { background: var(--blue-light);   color: #1E40AF; }
+.source-jd    { background: var(--purple-light); color: #6D28D9; }
